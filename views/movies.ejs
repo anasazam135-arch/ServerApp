@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Movies</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/nav', { user: user }) %>
+
+  <div class="container">
+    <div class="row g-4">
+      <!-- Search -->
+      <div class="col-lg-7">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title mb-3">Search movies online</h4>
+
+            <% if (error) { %>
+              <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+
+            <form method="GET" action="/movies" class="row g-2">
+              <div class="col-12 col-md-9">
+                <input class="form-control" name="term" value="<%= term %>" placeholder="Type a movie name..." required />
+              </div>
+              <div class="col-12 col-md-3">
+                <button class="btn btn-primary w-100" type="submit">Search</button>
+              </div>
+
+              <!-- keep favorites sorting in URL -->
+              <input type="hidden" name="sort" value="<%= sort %>" />
+              <input type="hidden" name="dir" value="<%= dir %>" />
+            </form>
+
+            <hr class="my-4" />
+
+            <h5 class="mb-3">Results</h5>
+
+            <% if (!term) { %>
+              <p class="text-muted mb-0">Search above to see results.</p>
+            <% } else if (results.length === 0) { %>
+              <p class="text-muted mb-0">No results found.</p>
+            <% } else { %>
+              <div class="list-group">
+                <% results.forEach(m => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex gap-3">
+                      <% if (m.posterUrl) { %>
+                        <img src="<%= m.posterUrl %>" alt="poster" style="width:64px;height:64px;object-fit:cover;border-radius:8px;" />
+                      <% } else { %>
+                        <div style="width:64px;height:64px;border-radius:8px;" class="bg-light border"></div>
+                      <% } %>
+
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                          <div>
+                            <div class="fw-semibold"><%= m.title %></div>
+                            <div class="text-muted small">
+                              <% if (m.year) { %><span><%= m.year %></span><% } %>
+                              <% if (m.genre) { %><span> • <%= m.genre %></span><% } %>
+                            </div>
+                          </div>
+
+                          <form method="POST" action="/movies/favorites" class="m-0">
+                            <input type="hidden" name="movieId" value="<%= m.movieId %>" />
+                            <input type="hidden" name="title" value="<%= m.title %>" />
+                            <input type="hidden" name="year" value="<%= m.year || '' %>" />
+                            <input type="hidden" name="posterUrl" value="<%= m.posterUrl || '' %>" />
+                            <button class="btn btn-outline-success btn-sm" type="submit">Add to favorites</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favorites -->
+      <div class="col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="card-title mb-0">My favorites</h4>
+              <form method="GET" action="/movies" class="d-flex gap-2 align-items-center">
+                <!-- keep search term in URL -->
+                <input type="hidden" name="term" value="<%= term %>" />
+
+                <select class="form-select form-select-sm" name="sort">
+                  <option value="createdAt" <%= (sort.toLowerCase()==='createdat') ? 'selected' : '' %>>Newest</option>
+                  <option value="title" <%= (sort.toLowerCase()==='title') ? 'selected' : '' %>>Title</option>
+                  <option value="year" <%= (sort.toLowerCase()==='year') ? 'selected' : '' %>>Year</option>
+                </select>
+
+                <select class="form-select form-select-sm" name="dir">
+                  <option value="desc" <%= (dir.toLowerCase()==='desc') ? 'selected' : '' %>>Desc</option>
+                  <option value="asc" <%= (dir.toLowerCase()==='asc') ? 'selected' : '' %>>Asc</option>
+                </select>
+
+                <button class="btn btn-outline-primary btn-sm" type="submit">Sort</button>
+              </form>
+            </div>
+
+            <% if (favorites.length === 0) { %>
+              <p class="text-muted mb-0">No favorite movies yet. Search and add some.</p>
+            <% } else { %>
+              <div class="list-group">
+                <% favorites.forEach(f => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex gap-3">
+                      <% if (f.posterUrl) { %>
+                        <img src="<%= f.posterUrl %>" alt="poster" style="width:56px;height:56px;object-fit:cover;border-radius:8px;" />
+                      <% } else { %>
+                        <div style="width:56px;height:56px;border-radius:8px;" class="bg-light border"></div>
+                      <% } %>
+
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                          <div>
+                            <div class="fw-semibold"><%= f.title %></div>
+                            <div class="text-muted small">
+                              <% if (f.year) { %><span><%= f.year %></span><% } %>
+                              <span> • saved</span>
+                            </div>
+                          </div>
+                          <form method="POST" action="/movies/favorites/<%= f.id %>/delete" class="m-0">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Remove</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

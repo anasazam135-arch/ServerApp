@@ -1,0 +1,38 @@
+const bcrypt = require("bcrypt");
+const userRepo = require("../repositories/userRepository");
+const { validateRegisterInput, validateLoginInput } = require("../utils/validators");
+
+class AuthService {
+    async register({ email, fullName, password }) {
+        const cleaned = validateRegisterInput({ email, fullName, password });
+
+        email = cleaned.email;
+        fullName = cleaned.fullName;
+        password = cleaned.password;
+
+        const existing = await userRepo.findByEmail(email);
+        if (existing) {
+            throw new Error("Email already registered.");
+        }
+
+        const passwordHash = await bcrypt.hash(password, 12);
+        const user = await userRepo.create({ email, fullName, passwordHash });
+        return user;
+    }
+
+    async login({ email, password }) {
+        const cleaned = validateLoginInput({ email, password });
+        email = cleaned.email;
+        password = cleaned.password;
+
+        const user = await userRepo.findByEmail(email);
+        if (!user) throw new Error("Invalid email or password.");
+        //take user password and compared with hash 
+        const ok = await bcrypt.compare(password, user.passwordHash);
+        if (!ok) throw new Error("Invalid email or password.");
+
+        return user;
+    }
+}
+
+module.exports = new AuthService();
