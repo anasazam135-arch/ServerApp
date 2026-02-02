@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>YouTube Videos</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/nav', { user: user }) %>
+
+  <div class="container">
+    <div class="row g-4">
+      <!-- Search -->
+      <div class="col-lg-7">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title mb-3">Search YouTube videos</h4>
+
+            <% if (error) { %>
+              <div class="alert alert-danger"><%= error %></div>
+            <% } %>
+
+            <form method="GET" action="/videos" class="row g-2">
+              <div class="col-12 col-md-9">
+                <input class="form-control" name="term" value="<%= term %>" placeholder="Type a YouTube video keyword..." required />
+              </div>
+              <div class="col-12 col-md-3">
+                <button class="btn btn-primary w-100" type="submit">Search</button>
+              </div>
+
+              <!-- keep favorites sorting in URL -->
+              <input type="hidden" name="sort" value="<%= sort %>" />
+              <input type="hidden" name="dir" value="<%= dir %>" />
+            </form>
+
+            <hr class="my-4" />
+
+            <h5 class="mb-3">Results</h5>
+
+            <% if (!term) { %>
+              <p class="text-muted mb-0">Search above to see results.</p>
+            <% } else if (results.length === 0) { %>
+              <p class="text-muted mb-0">No results found.</p>
+            <% } else { %>
+              <div class="list-group">
+                <% results.forEach(v => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex gap-3">
+                      <% if (v.thumbnailUrl) { %>
+                        <img src="<%= v.thumbnailUrl %>" alt="thumbnail" style="width:96px;height:64px;object-fit:cover;border-radius:8px;" />
+                      <% } else { %>
+                        <div style="width:96px;height:64px;border-radius:8px;" class="bg-light border"></div>
+                      <% } %>
+
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                          <div>
+                            <div class="fw-semibold"><%= v.title %></div>
+                            <div class="text-muted small">
+                              <% if (v.channelTitle) { %><span><%= v.channelTitle %></span><% } %>
+                              <% if (v.publishedAt) { %><span> - <%= v.publishedAt.slice(0, 10) %></span><% } %>
+                            </div>
+                            <div class="mt-2">
+                              <a class="btn btn-link btn-sm p-0" href="https://www.youtube.com/watch?v=<%= v.videoId %>" target="_blank" rel="noopener">Open on YouTube</a>
+                            </div>
+                          </div>
+
+                          <form method="POST" action="/videos/favorites" class="m-0">
+                            <input type="hidden" name="videoId" value="<%= v.videoId %>" />
+                            <input type="hidden" name="title" value="<%= v.title %>" />
+                            <input type="hidden" name="channelTitle" value="<%= v.channelTitle || '' %>" />
+                            <input type="hidden" name="publishedAt" value="<%= v.publishedAt || '' %>" />
+                            <input type="hidden" name="thumbnailUrl" value="<%= v.thumbnailUrl || '' %>" />
+                            <button class="btn btn-outline-success btn-sm" type="submit">Add to favorites</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+
+              <% if (prevPageToken || nextPageToken) { %>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <% if (prevPageToken) { %>
+                    <a class="btn btn-outline-secondary btn-sm" href="/videos?term=<%= encodeURIComponent(term) %>&pageToken=<%= prevPageToken %>&sort=<%= sort %>&dir=<%= dir %>">Prev</a>
+                  <% } else { %>
+                    <span></span>
+                  <% } %>
+                  <% if (nextPageToken) { %>
+                    <a class="btn btn-outline-secondary btn-sm" href="/videos?term=<%= encodeURIComponent(term) %>&pageToken=<%= nextPageToken %>&sort=<%= sort %>&dir=<%= dir %>">Next</a>
+                  <% } %>
+                </div>
+              <% } %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favorites -->
+      <div class="col-lg-5">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="card-title mb-0">My favorites</h4>
+              <form method="GET" action="/videos" class="d-flex gap-2 align-items-center">
+                <!-- keep search term in URL -->
+                <input type="hidden" name="term" value="<%= term %>" />
+
+                <select class="form-select form-select-sm" name="sort">
+                  <option value="createdAt" <%= (sort.toLowerCase()==='createdat') ? 'selected' : '' %>>Newest</option>
+                  <option value="title" <%= (sort.toLowerCase()==='title') ? 'selected' : '' %>>Title</option>
+                  <option value="channelTitle" <%= (sort.toLowerCase()==='channeltitle') ? 'selected' : '' %>>Channel</option>
+                  <option value="publishedAt" <%= (sort.toLowerCase()==='publishedat') ? 'selected' : '' %>>Published</option>
+                </select>
+
+                <select class="form-select form-select-sm" name="dir">
+                  <option value="desc" <%= (dir.toLowerCase()==='desc') ? 'selected' : '' %>>Desc</option>
+                  <option value="asc" <%= (dir.toLowerCase()==='asc') ? 'selected' : '' %>>Asc</option>
+                </select>
+
+                <button class="btn btn-outline-primary btn-sm" type="submit">Sort</button>
+              </form>
+            </div>
+
+            <% if (favorites.length === 0) { %>
+              <p class="text-muted mb-0">No favorite videos yet. Search and add some.</p>
+            <% } else { %>
+              <div class="list-group">
+                <% favorites.forEach(f => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex gap-3">
+                      <% if (f.thumbnailUrl) { %>
+                        <img src="<%= f.thumbnailUrl %>" alt="thumbnail" style="width:64px;height:44px;object-fit:cover;border-radius:8px;" />
+                      <% } else { %>
+                        <div style="width:64px;height:44px;border-radius:8px;" class="bg-light border"></div>
+                      <% } %>
+
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                          <div>
+                            <div class="fw-semibold"><%= f.title %></div>
+                            <div class="text-muted small">
+                              <% if (f.channelTitle) { %><span><%= f.channelTitle %></span><% } %>
+                              <% if (f.publishedAt) { %><span> - <%= f.publishedAt.slice(0, 10) %></span><% } %>
+                              <span> - saved</span>
+                            </div>
+                            <div class="mt-2">
+                              <a class="btn btn-link btn-sm p-0" href="https://www.youtube.com/watch?v=<%= f.videoId %>" target="_blank" rel="noopener">Open on YouTube</a>
+                            </div>
+                          </div>
+                          <form method="POST" action="/videos/favorites/<%= f.id %>/delete" class="m-0">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Remove</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

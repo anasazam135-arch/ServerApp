@@ -3,7 +3,7 @@
     <a class="navbar-brand" href="/">ServerAPP</a>
     <div class="d-flex align-items-center gap-3">
       <% if (user) { %>
-        <a class="btn btn-outline-primary btn-sm" href="/movies">Movies</a>
+        <a class="btn btn-outline-primary btn-sm" href="/videos">YouTube</a>
         <span class="text-muted small">Logged in as <b><%= user.fullName %></b></span>
         <form method="POST" action="/logout" class="m-0">
           <button class="btn btn-outline-danger btn-sm" type="submit">Logout</button>

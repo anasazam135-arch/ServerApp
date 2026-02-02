@@ -16,15 +16,16 @@ db.serialize(() => {
   `);
 
     db.run(`
-    CREATE TABLE IF NOT EXISTS FavoriteMovies (
+    CREATE TABLE IF NOT EXISTS FavoriteVideos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       userId INTEGER NOT NULL,
-      movieId TEXT NOT NULL,
+      videoId TEXT NOT NULL,
       title TEXT NOT NULL,
-      year INTEGER,
-      posterUrl TEXT,
+      channelTitle TEXT,
+      thumbnailUrl TEXT,
+      publishedAt TEXT,
       createdAt TEXT NOT NULL,
-      UNIQUE(userId, movieId)
+      UNIQUE(userId, videoId)
     )
   `);
 });

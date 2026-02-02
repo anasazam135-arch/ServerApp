@@ -5,7 +5,7 @@ const express = require("express");
 const path = require("path");
 const sessionMiddleware = require("./config/session");
 const authRoutes = require("./routes/authRoutes");
-const moviesRoutes = require("./routes/moviesRoutes");
+const videosRoutes = require("./routes/videosRoutes");
 const requireAuth = require("./middleware/requireAuth");
 
 const app = express();
@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 
 // routes
 app.use(authRoutes);
-app.use(moviesRoutes);
+app.use(videosRoutes);
 
 // protected home
 app.get("/", requireAuth, (req, res) => {
